@@ -3,7 +3,7 @@ FROM golang:1.12 as builder
 LABEL maintainer="Ivan Savcic <isavcic@gmail.com>"
 
 # Set the Current Working Directory inside the container
-WORKDIR $GOPATH/src/git.imped.net/isavcic/komeon
+WORKDIR $GOPATH/src/github.com/isavcic/komeon
 
 # Copy everything from the current directory to the PWD(Present Working Directory) inside the container
 COPY . .
