@@ -14,7 +14,8 @@ import (
 )
 
 type config struct {
-	LabelGroups []string `env:"POD_LABELS,required" envSeparator:";"`
+	LabelGroups []string      `env:"POD_LABELS,required" envSeparator:";"`
+	Sleep       time.Duration `env:"SLEEP" envDefault:"2"`
 }
 
 func init() {
@@ -23,13 +24,15 @@ func init() {
 
 func main() {
 
+	log.Println("info: komeon starting")
+
 	cfg := config{}
 	if err := env.Parse(&cfg); err != nil {
 		log.Fatalln("error:", err)
 	}
 
 	labelMaps := parseLabelGroups(cfg.LabelGroups)
-	log.Println("info: looking for", labelMaps, "labels")
+	log.Println("info: will look for", labelMaps, "labels")
 
 	// creates the in-cluster config
 	config, err := rest.InClusterConfig()
@@ -45,15 +48,16 @@ func main() {
 
 	for {
 		if scanPods(clientset, labelMaps) {
-			log.Println("info: found all the labels in running pods!")
+			log.Println("info: found all required labels in the running pods, exiting with exit code 0")
 			os.Exit(0)
 		}
 
-		log.Println("debug: labels not found in the running pods, sleeping and retrying")
-		time.Sleep(2 * time.Second)
+		log.Println("info: required labels not found in the running pods, sleeping and retrying")
+		time.Sleep(cfg.Sleep * time.Second)
 	}
 }
 
+// parseLabelGroups splits the label groups into an array of label maps
 func parseLabelGroups(lgs []string) []map[string]string {
 	lms := make([]map[string]string, len(lgs))
 	for i, lg := range lgs {
@@ -67,6 +71,7 @@ func parseLabelGroups(lgs []string) []map[string]string {
 	return lms
 }
 
+// mapInMap returns true if all of the src map elements are present in the dst map, false otherwise
 func mapInMap(src map[string]string, dst map[string]string) bool {
 	var f int
 	for sk, sv := range src {
@@ -88,7 +93,7 @@ func scanPods(clientset *kubernetes.Clientset, labelMaps []map[string]string) bo
 		log.Fatalln("error:", err)
 	}
 
-	log.Printf("debug: there are currently %d pods in the cluster\n", len(pods.Items))
+	log.Printf("info: there are currently %d pods in the cluster\n", len(pods.Items))
 
 	var f int
 	for _, p := range pods.Items {
