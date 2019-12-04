@@ -1,0 +1,22 @@
+test-str:
+  desc: Run str tests.
+  cmds:
+    - echo "Calling tests str execution ..."
+    - go test {{.REPO_PATH}} -v --cover
+  silent: true
+
+cover:
+  desc: Check cover of all unit tests.
+  cmds:
+    - echo "Checking coverage for all unit tests ..."
+    - goverage ./...
+    - go tool cover -html=coverage.out
+
+test:
+  deps: [test-str]
+  desc: Run all tests.
+
+format:
+  cmds:
+    - echo "Formatting all files on the project ..."
+    - gofmt -e -s -w .
