@@ -7,4 +7,4 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags="-w -s" -o 
 RUN upx --best --overlay=strip /komeon
 FROM scratch
 COPY --from=builder /komeon /
-ENTRYPOINT ["./komeon"]
+ENTRYPOINT ["/komeon"]
